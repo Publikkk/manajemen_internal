@@ -3,103 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Nota & Stok Terpadu</title>
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --primary-hover: #1557b0;
-            --primary-light: #e8f0fe;
-            --bg-color: #f8fafc;
-            --text-color: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --success: #10b981;
-            --success-light: #ecfdf5;
-            --error: #ef4444;
-            --error-light: #fef2f2;
-            --wa-color: #25d366;
-            --wa-hover: #20ba5a;
-            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-            --shadow-focus: 0 0 0 4px rgba(26, 115, 232, 0.15);
-            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        body { font-family: 'Segoe UI', Roboto, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .app-container { background: #ffffff; padding: 40px 32px; border-radius: 16px; box-shadow: var(--shadow-lg); width: 100%; max-width: 850px; box-sizing: border-box; border: 1px solid rgba(226, 232, 240, 0.8); }
-        .form-centered-container { max-width: 500px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .business-name-ui { font-size: 20px; font-weight: 700; margin: 0; text-transform: uppercase; color: #0f172a; }
-        
-        .tabs { display: flex; background-color: #f1f5f9; padding: 6px; border-radius: 10px; margin-bottom: 28px; gap: 4px; }
-        .tab-button { flex: 1; padding: 10px 12px; background: none; border: none; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: var(--transition-smooth); }
-        .tab-button.active { background-color: #ffffff; color: var(--primary); box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
-        input, textarea, select { width: 100%; padding: 12px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 14px; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: var(--shadow-focus); }
-        
-        .switch-container { display: flex; align-items: center; gap: 10px; background-color: #f8fafc; padding: 12px 15px; border-radius: 8px; border: 1.5px solid var(--border-color); margin-bottom: 18px; }
-        .sub-box-stok { display: none; background-color: #f1f5f9; padding: 15px; border-radius: 8px; border: 1.5px dashed var(--primary); margin-bottom: 18px; }
-
-        .stok-layout { display: flex; flex-direction: column; gap: 25px; }
-        @media(min-width: 768px) { .stok-layout { flex-direction: row; } .stok-form-panel { flex: 4; } .stok-table-panel { flex: 8; } }
-
-        .search-filter-box { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-        @media(min-width: 500px) { .search-filter-box { grid-template-columns: repeat(4, 1fr); } }
-        .table-responsive-custom { width: 100%; overflow-x: auto; border-radius: 8px; border: 1.5px solid var(--border-color); }
-        .table-stok { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 13.5px; }
-        .table-stok th { background-color: #f1f5f9; padding: 12px; text-align: left; color: var(--text-muted); border-bottom: 2px solid var(--border-color); }
-        .table-stok td { padding: 12px; border-bottom: 1px solid var(--border-color); }
-        
-        .alert-stok-row { background-color: #fff0f1 !important; color: var(--error); }
-        .alert-stok-row td { border-left: 4px solid var(--error); font-weight: 500; }
-        .badge-stat { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .bg-safe { background-color: #e0fbf7; color: #10b981; }
-        .bg-warning-custom { background-color: #fff3cd; color: #856404; }
-        .bg-danger-custom { background-color: #ffe3e5; color: #ef4444; }
-
-        button.btn-submit { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; }
-        button.btn-submit:hover { background-color: var(--primary-hover); }
-        .btn-tambah { background-color: #10b981; }
-        .btn-kurang { background-color: #ef4444; margin-top: 8px; }
-
-        .status-message { margin-top: 20px; font-size: 13.5px; text-align: center; padding: 12px; border-radius: 8px; display: none; }
-        .status-error { background-color: var(--error-light); color: var(--error); display: block; }
-        .status-loading { background-color: var(--primary-light); color: var(--primary); display: block; }
-        
-        .nota-footer-ui { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
-        .btn-action-ui { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
-        .btn-wa-self-ui { background-color: var(--wa-color); color: white; }
-        .btn-download-ui { background-color: #334155; color: white; }
-        .btn-cs-ui { background-color: #ffffff; color: #334155; border: 1.5px solid var(--border-color); }
-
-        /* PRINT STYLE */
-        #nota-print-area { display: none; background: #fff; padding: 40px; font-size: 12px; }
-        .p-header-main { display: flex; justify-content: space-between; margin-bottom: 40px; }
-        .p-sender { width: 50%; }
-        .p-invoice-info { width: 40%; text-align: right; }
-        .p-recipient { width: 35%; margin-bottom: 40px; margin-left: auto; text-align: right; }
-        .p-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .p-table th { border-bottom: 2px solid #ddd; padding: 10px; text-align: left; }
-        .p-table td { padding: 15px 10px; border-bottom: 1px solid #eee; }
-        .p-total-section { width: 40%; margin-left: auto; text-align: right; margin-bottom: 40px; }
-        .p-total-row { display: flex; justify-content: flex-end; padding: 5px 10px; }
-        .p-total-final { border-top: 2px solid #ddd; font-weight: bold; color: #1a73e8; font-size: 16px; }
-        .p-footer-notes { font-size: 11px; line-height: 1.6; }
-
-        @media print {
-            body { background: #fff; padding: 0; margin: 0; display: block; }
-            .app-container { display: none; }
-            #nota-print-area { display: block; width: 210mm; }
-        }
-        
-        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); display: none; justify-content: center; align-items: center; z-index: 9999; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+    <title>Sistem Manajemen Toko - iFrontroom Edition</title>
+    <!-- HUBUNGKAN KE CSS EKSTERNAL -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -126,7 +32,7 @@
                 
                 <div class="switch-container">
                     <input type="checkbox" id="switch_pakai_stok" onchange="toggleBoxStokNota()">
-                    <label for="switch_pakai_stok" style="margin:0; color:var(--primary); cursor:pointer; font-weight:600;">🛠️ Potong Stok Sparepart?</label>
+                    <label for="switch_pakai_stok" style="margin:0; color:var(--primary); cursor:pointer; font-weight:600;">🛠️ Potong Stok Sparepart Toko?</label>
                 </div>
                 
                 <div id="box-stok-nota" class="sub-box-stok">
@@ -147,24 +53,22 @@
                     </div>
                 </div>
 
-                <div class="form-group"><label>Detail Perbaikan / Jasa</label><textarea id="inp_perbaikan" required></textarea></div>
+                <div class="form-group"><label>Detail Perbaikan / Jasa</label><textarea id="inp_perbaikan" placeholder="Tulis keluhan atau pancingan perbaikan..." required></textarea></div>
                 <div class="form-group"><label>Harga (Rp)</label><input type="number" id="inp_harga" required></div>
                 <button type="submit" class="btn-submit">Simpan & Buat Nota</button>
             </form>
-            <div id="input-status" class="status-message"></div>
         </div>
     </div>
 
     <!-- TAB 2: CARI NOTA -->
     <div id="cari-tab" class="tab-content">
         <div class="form-centered-container">
-            <div class="form-group"><label>Masukkan Nomor Nota</label><input type="text" id="search_nota" placeholder="Contoh: 1001"></div>
+            <div class="form-group"><label>Masukkan Nomor Nota</label><input type="text" id="search_nota" placeholder="Contoh: 1001 atau REPAIR-1001"></div>
             <button type="button" onclick="cariNota()" class="btn-submit">Cari Nota</button>
-            <div id="search-status" class="status-message"></div>
         </div>
     </div>
 
-    <!-- TAB 3: MANAJEMEN STOK -->
+    <!-- TAB 3: KELOLA STOK -->
     <div id="stok-tab" class="tab-content">
         <div class="stok-layout">
             <div class="stok-form-panel">
@@ -180,7 +84,7 @@
                     <label>Warna Varian</label>
                     <select id="stok_warna">
                         <option value="">-- Pilih Warna --</option>
-                        <option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Pink">Pink</option>
+                        <option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Pink">Pink</option><option value="Purple">Purple</option>
                     </select>
                 </div>
                 <div class="form-group"><label>Jumlah Unit</label><input type="number" id="stok_jumlah" min="1" value="1"></div>
@@ -195,6 +99,7 @@
                     <select id="f_tipe" onchange="saringTabelStok()"><option value="">Semua Tipe</option></select>
                     <select id="f_status" onchange="saringTabelStok()"><option value="">Semua Stat</option><option value="aman">✅ Aman</option><option value="menipis">⚠️ Nipi</option><option value="kritis">🚨 Kritis</option></select>
                 </div>
+                <div style="margin-bottom: 8px; font-size: 12px; font-weight: bold; color: var(--text-muted);" id="totalItem">0 Data</div>
                 <div class="table-responsive-custom">
                     <table class="table-stok">
                         <thead><tr><th>Produk</th><th>Tipe iPhone</th><th>Stok</th><th>Status</th></tr></thead>
@@ -205,253 +110,103 @@
         </div>
     </div>
 
-    <!-- BOX MODAL AKSI -->
+    <!-- DOCKING POPUP ACTION -->
     <div id="nota-box" style="display: none;">
         <hr style="border:0; border-top:1.5px dashed var(--border-color); margin:25px 0;">
-        <div id="alert-success-msg" style="text-align: center; color: var(--success); background-color: var(--success-light); padding: 15px; border-radius: 8px;">🎉 Sukses!</div>
+        <div id="alert-success-msg" style="text-align: center; color: var(--success); background-color: var(--success-light); padding: 15px; border-radius: 8px;">Sukses!</div>
         <div class="nota-footer-ui">
-            <button type="button" class="btn-action-ui btn-wa-self-ui" onclick="kirimNotaKeWA()">💬 Kirim Nota ke WA</button>
-            <button type="button" class="btn-action-ui btn-download-ui" onclick="window.print()">💾 Cetak / PDF</button>
-            <button type="button" class="btn-action-ui btn-cs-ui" onclick="hubungiOwner()">📞 Hubungi CS</button>
+            <button type="button" class="btn-action-ui btn-wa-self-ui" onclick="kirimNotaKeWA()">💬 Kirim Nota ke WA Customer</button>
+            <button type="button" class="btn-action-ui btn-download-ui" onclick="window.print()">💾 Simpan / Cetak PDF</button>
+            <button type="button" class="btn-action-ui btn-cs-ui" onclick="hubungiOwner()">📞 Hubungi CS Toko</button>
         </div>
     </div>
 </div>
 
-<!-- TEMPLATE PRINT -->
+<!-- =========================================================================
+   AREA NOTA CETAK A4 ASLI (SAMA SEPERTI REFERENSI GAMBAR USER)
+   ========================================================================= -->
 <div id="nota-print-area">
     <div class="p-header-main">
         <div class="p-sender">
-            <div style="font-size:20px; font-weight:bold; color:#1e3a8a;" class="p-business-name-target">-</div>
-            <div class="p-sender-address">Jl. Rajawali 2 No 22, Tangerang, Banten<br>HP: 6285210987654</div>
+            <div class="p-logo p-business-name-target">IFRONTROOM SERVICE</div>
+            <div class="p-info-block-title">DARI (PENGIRIM)</div>
+            <div class="p-sender-info">
+                <div style="font-weight: 600;" class="p-business-name-target">IFRONTROOM SERVICE</div>
+                <div class="p-sender-address">
+                    Jl. Rajawali 2 No 22 RT 03/RW 04, Kelurahan Margasari,<br>
+                    Kecamatan Tigaraksa, Kabupaten Tangerang,<br>
+                    Banten 15720<br>
+                    HP: 6285210987654
+                </div>
+            </div>
         </div>
         <div class="p-invoice-info">
-            <div style="font-size:32px; font-weight:bold;">INVOICE</div>
-            <div>No: <span id="p_lbl_nota">-</span></div>
-            <div>Tanggal: <span id="p_lbl_tanggal">-</span></div>
-            <div>Garansi Sampai: <span id="p_lbl_tanggal_due">-</span></div>
+            <div class="p-invoice-title">INVOICE</div>
+            <div class="p-info-row"><span class="p-info-label">No. Invoice</span> <span class="p-info-value" id="p_lbl_nota">INV-xxxx</span></div>
+            <div class="p-info-row"><span class="p-info-label">Tanggal</span> <span class="p-info-value" id="p_lbl_tanggal">-</span></div>
+            <div class="p-info-row"><span class="p-info-label">Jatuh Tempo</span> <span class="p-info-value" id="p_lbl_tanggal_due">-</span></div>
         </div>
     </div>
+
     <div class="p-recipient">
-        <div class="p-info-block-title">KEPADA:</div>
-        <div style="font-weight:600;" id="p_lbl_nama">-</div>
-        <div style="font-size:11px;color:#555;">HP: <span id="p_lbl_hp">-</span> | PIN: <span id="p_lbl_pin">-</span></div>
+        <div class="p-info-block-title">KEPADA (PENERIMA)</div>
+        <div class="p-recipient-info">
+            <div style="font-weight: 600; text-transform: uppercase;" id="p_lbl_nama">-</div>
+            <div style="font-size: 11px; color: #555; margin-top: 4px;">
+                No. HP: <span id="p_lbl_hp">-</span><br>
+                PIN Layar: <span id="p_lbl_pin">-</span>
+            </div>
+        </div>
     </div>
+
     <table class="p-table">
-        <thead><tr><th>Deskripsi Jasa / Perbaikan</th><th style="text-align:right;">Total</th></tr></thead>
-        <tbody><tr><td id="p_lbl_perbaikan">-</td><td id="p_lbl_harga_total" style="text-align:right;">Rp 0</td></tr></tbody>
+        <thead>
+            <tr>
+                <th>Deskripsi Item Perbaikan / Jasa</th>
+                <th style="text-align: right; width: 100px;">Harga</th>
+                <th style="text-align: center; width: 60px;">Qty</th>
+                <th style="text-align: right; width: 80px;">Diskon</th>
+                <th style="text-align: right; width: 100px;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="p_lbl_perbaikan" style="white-space: pre-wrap;">-</td>
+                <td id="p_lbl_harga_unit" style="text-align: right;">Rp 0</td>
+                <td style="text-align: center;">1</td>
+                <td style="text-align: right; color: var(--error);">-Rp 0</td>
+                <td id="p_lbl_harga_total" style="text-align: right; font-weight: 600;">Rp 0</td>
+            </tr>
+        </tbody>
     </table>
+
     <div class="p-total-section">
-        <div class="p-total-row p-total-final"><span>Total Tagihan:</span><span style="width:130px;" id="p_lbl_final_total">Rp 0</span></div>
+        <div class="p-total-row"><span>Subtotal</span> <span style="width: 120px;" id="p_lbl_subtotal">Rp 0</span></div>
+        <div class="p-total-row"><span>Diskon</span> <span style="width: 120px; color: var(--error);">-Rp 0</span></div>
+        <div class="p-total-row"><span>PPN (0%)</span> <span style="width: 120px;">Rp 0</span></div>
+        <div class="p-total-row p-total-final">
+            <span style="text-transform: uppercase;">Total Tagihan</span>
+            <span style="width: 120px;" id="p_lbl_final_total">Rp 0</span>
+        </div>
     </div>
+
     <div class="p-footer-notes">
-        <div style="font-weight:bold;">Ketentuan Garansi:</div>
-        <ul><li>Garansi berlaku 1 bulan sejak pengambilan barang. Garansi void jika human error (jatuh/kena air).</li></ul>
+        <div class="p-notes-title">Catatan & Ketentuan Garansi:</div>
+        <ul class="p-notes-list">
+            <li>Garansi bisa di klaim apabila produk atau pelayanan tidak sesuai definisi yang sudah dikonfirmasikan sebelumnya.</li>
+            <li>Garansi tidak bisa diklaim apabila kerusakan terjadi akibat kecerobohan atau ketidaksengajaan seperti HP terjatuh, terkena air, overcharge dan lain-lain.</li>
+            <li>Garansi standar memiliki kadaluarsa 1 bulan dimulai sejak perbaikan selesai.</li>
+            <li>Apabila pembayaran tidak sesuai dengan konfirmasi awal atau adanya negosiasi yang membuat penyedia jasa memberikan diskon atau potongan harga, maka penerima jasa tidak mendapat garansi apapun.</li>
+            <li>Sparepart pribadi yang di bawa sendiri tidak mendapatkan garansi dari penyedia jasa segala bentuk ketidaksempurnaan, kerusakan dan hal merugikan lainnya merupakan tanggung jawab pribadi.</li>
+        </ul>
+        <div class="p-thank-you">
+            Terima kasih atas kepercayaan Anda.<br>
+            <div style="font-weight: 600; margin-top: 5px;">Metode Pembayaran: Cash / Transfer BCA 123456789 a.n NAMA ANDA</div>
+        </div>
     </div>
 </div>
 
-<script>
-    // =========================================================================
-    // !!! PASTE LINK DEPLOYMENT GOOGLE APPS SCRIPT ANDA DI SINI !!!
-    // =========================================================================
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwqNZORsI8lo0ayAKKewrwNO8cWHNe8PCuuePy584T_on1uk4JgiEqUgdR1F7EiGagvQA/exec";
-    const NOMOR_WA_CS = "62895413994246"; 
-    const NAMA_BISNIS = "IFRONTROOM SERVICE"; 
-    // =========================================================================
-
-    const daftarTipeIphone = ["X", "XR", "XS", "XSM", "11", "11P", "11PM", "12 Mini", "12", "12P", "12PM", "13 Mini", "13", "13P", "13PM", "14", "14 Plus", "14P", "14PM", "15", "15 Plus", "15P", "15PM"];
-    let dataNotaAktif = null; let masterDataStok = [];
-
-    window.onload = function() {
-        document.querySelectorAll('.business-name-ui').forEach(el => el.textContent = NAMA_BISNIS);
-        const fTipe = document.getElementById("f_tipe");
-        daftarTipeIphone.forEach(t => { fTipe.appendChild(new Option("iPhone " + t, "iPhone " + t)); });
-    };
-
-    function switchTab(element, tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        if(element) element.classList.add('active');
-        document.getElementById('nota-box').style.display = 'none';
-        if (tabId === 'stok-tab') muatDataStokDariSheets();
-    }
-
-    function toggleBoxStokNota() {
-        document.getElementById('box-stok-nota').style.display = document.getElementById('switch_pakai_stok').checked ? 'block' : 'none';
-    }
-
-    function updateOpsiTipeNota() {
-        const prod = document.getElementById("nota_produk").value;
-        const sel = document.getElementById("nota_tipe");
-        sel.innerHTML = '<option value="">-- Pilih Tipe --</option>';
-        document.getElementById("nota_area_warna").style.display = (prod === "BACKGLASS") ? "block" : "none";
-        if(prod !== "") { sel.disabled = false; daftarTipeIphone.forEach(t => { sel.appendChild(new Option("iPhone " + t, "iPhone " + t)); }); } else { sel.disabled = true; }
-    }
-
-    function updateOpsiTipeGudang() {
-        const prod = document.getElementById("stok_produk").value;
-        const sel = document.getElementById("stok_tipe");
-        sel.innerHTML = '<option value="">-- Pilih Tipe --</option>';
-        document.getElementById("stok_area_warna").style.display = (prod === "BACKGLASS") ? "block" : "none";
-        if(prod !== "") { sel.disabled = false; daftarTipeIphone.forEach(t => { sel.appendChild(new Option("iPhone " + t, "iPhone " + t)); }); } else { sel.disabled = true; }
-    }
-
-    function pasangDataKeNotaCetak(data) {
-        document.querySelectorAll('.p-business-name-target').forEach(el => el.textContent = NAMA_BISNIS);
-        document.getElementById('p_lbl_nota').textContent = "INV-" + data.no_nota;
-        document.getElementById('p_lbl_tanggal').textContent = data.tanggal;
-        
-        // Hitung Jatuh tempo garansi otomatis 30 hari ke depan
-        const parts = data.tanggal.split('/');
-        const tgl = new Date(parts[2], parts[1]-1, parts[0]);
-        tgl.setDate(tgl.getDate() + 30);
-        document.getElementById('p_lbl_tanggal_due').textContent = ('0' + tgl.getDate()).slice(-2) + '/' + ('0' + (tgl.getMonth()+1)).slice(-2) + '/' + tgl.getFullYear();
-        
-        document.getElementById('p_lbl_nama').textContent = data.nama_customer.toUpperCase();
-        document.getElementById('p_lbl_hp').textContent = data.no_telepon;
-        document.getElementById('p_lbl_pin').textContent = data.pin_layar;
-        document.getElementById('p_lbl_perbaikan').textContent = data.perbaikan.toUpperCase();
-        
-        const formattedHarga = "Rp " + Number(data.harga).toLocaleString('id-ID');
-        document.getElementById('p_lbl_harga_total').textContent = formattedHarga;
-        document.getElementById('p_lbl_final_total').textContent = formattedHarga;
-    }
-
-    // PENGGANTIAN RESMI: Menggunakan FETCH API murni karena file berjalan lokal di Desktop
-    async function simpanNota(event) {
-        event.preventDefault();
-        let hpInput = document.getElementById('inp_hp').value.trim();
-        if (hpInput.startsWith("0")) hpInput = "62" + hpInput.slice(1);
-        var pakaiSparepart = document.getElementById("switch_pakai_stok").checked ? "ya" : "tidak";
-
-        const payload = {
-            action: "tambah_nota",
-            nama_customer: document.getElementById('inp_nama').value,
-            no_telepon: hpInput,
-            pin_layar: document.getElementById('inp_pin').value,
-            perbaikan: document.getElementById('inp_perbaikan').value,
-            harga: Number(document.getElementById('inp_harga').value),
-            pakaiSparepart: pakaiSparepart
-        };
-
-        if (pakaiSparepart === "ya") {
-            payload.sparepart_produk = document.getElementById("nota_produk").value;
-            payload.sparepart_tipe = document.getElementById("nota_tipe").value;
-            payload.sparepart_warna = document.getElementById("nota_warna").value;
-        }
-
-        document.getElementById("loadingOverlay").style.display = "flex";
-
-        try {
-            const response = await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) });
-            const res = await response.json();
-            document.getElementById("loadingOverlay").style.display = "none";
-            dataNotaAktif = res;
-            pasangDataKeNotaCetak(dataNotaAktif);
-            document.getElementById('alert-success-msg').innerHTML = `<strong>Sukses!</strong> Nota Anda: <strong>INV-${res.no_nota}</strong>`;
-            document.getElementById('nota-box').style.display = 'block';
-            document.getElementById('form-input').reset();
-            document.getElementById('switch_pakai_stok').checked = false;
-            toggleBoxStokNota();
-        } catch(e) {
-            document.getElementById("loadingOverlay").style.display = "none";
-            alert("Gagal terhubung ke Google Sheets API.");
-        }
-    }
-
-    async function cariNota() {
-        const noNota = document.getElementById('search_nota').value.trim();
-        if (!noNota) return;
-        document.getElementById("loadingOverlay").style.display = "flex";
-        try {
-            const response = await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "cari_nota", no_nota: noNota }) });
-            const res = await response.json();
-            document.getElementById("loadingOverlay").style.display = "none";
-            if (res.status === "success") {
-                dataNotaAktif = res; pasangDataKeNotaCetak(dataNotaAktif);
-                document.getElementById('alert-success-msg').innerHTML = `<strong>Nota Berhasil Ditemukan!</strong>`;
-                document.getElementById('nota-box').style.display = 'block';
-            } else { alert(res.message); }
-        } catch(e) { document.getElementById("loadingOverlay").style.display = "none"; alert("Eror pencarian."); }
-    }
-
-   // HAPUS FUNGSI muatDataStokDariSheets YANG LAMA, GANTI DENGAN YANG INI:
-    function muatDataStokDariSheets() {
-        document.getElementById("bodyTabelStok").innerHTML = `<tr><td colspan="4" style="text-align:center;">Memuat stok dari database...</td></tr>`;
-        
-        const oldScript = document.getElementById("jsonp-stok-script");
-        if (oldScript) oldScript.remove();
-
-        const script = document.createElement("script");
-        script.id = "jsonp-stok-script";
-        script.src = WEB_APP_URL + "?action=get_stok&callback=terimaDataStokJSONP";
-        
-        script.onerror = function() {
-            document.getElementById("bodyTabelStok").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--error); font-weight:600;">⚠️ Gagal memuat data dari Sheets. Periksa koneksi atau URL API Anda.</td></tr>`;
-        };
-
-        document.body.appendChild(script);
-    }
-
-    // TAMBAHKAN FUNGSI BARU INI TEPAT DI BAWAHNYA:
-    function terimaDataStokJSONP(data) {
-        masterDataStok = data;
-        saringTabelStok();
-    }
-
-    async function eksekusiStokGudang(aksi) {
-        const prod = document.getElementById("stok_produk").value;
-        const tipe = document.getElementById("stok_tipe").value;
-        const warna = document.getElementById("stok_warna").value;
-        const jml = document.getElementById("stok_jumlah").value;
-        if(!prod || !tipe || !jml) return;
-        let tf = tipe; if(prod === "BACKGLASS" && warna) tf = tipe + " - " + warna;
-        
-        document.getElementById("loadingOverlay").style.display = "flex";
-        try {
-            const response = await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "update_stok", produk: prod, tipe: tf, jumlah: jml, aksi: aksi }) });
-            const res = await response.json();
-            document.getElementById("loadingOverlay").style.display = "none";
-            masterDataStok = res.data; saringTabelStok();
-            document.getElementById("stok_jumlah").value = 1;
-        } catch(e) { document.getElementById("loadingOverlay").style.display = "none"; }
-    }
-
-    function saringTabelStok() {
-        const kw = document.getElementById("cariKeywordStok").value.toLowerCase();
-        const fp = document.getElementById("f_produk").value;
-        const ft = document.getElementById("f_tipe").value;
-        const fs = document.getElementById("f_status").value;
-        
-        const res = masterDataStok.filter(item => {
-            return (item.produk.toLowerCase().includes(kw) || item.tipe.toLowerCase().includes(kw)) &&
-                   (fp === "" || item.produk === fp) && (ft === "" || item.tipe.startsWith(ft)) &&
-                   (fs === "" || (fs==="kritis" && item.stok<=1) || (fs==="menipis" && item.stok>1 && item.stok<=5) || (fs==="aman" && item.stok>5));
-        });
-        
-        const tbody = document.getElementById("bodyTabelStok"); tbody.innerHTML = "";
-        document.getElementById("totalItem").innerText = res.length + " Data";
-        if(res.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Kosong</td></tr>`; return; }
-        
-        res.forEach(item => {
-            let tr = document.createElement("tr"); let bc = "bg-safe"; let st = "Aman";
-            if (item.stok <= 1) { tr.className = "alert-stok-row"; bc = "bg-danger-custom"; st = "Kritis"; }
-            else if (item.stok <= 5) { bc = "bg-warning-custom"; st = "Menipis"; }
-            tr.innerHTML = `<td style="font-weight:600; color:var(--primary);">${item.produk}</td><td>${item.tipe}</td><td><b>${item.stok}</b> Pcs</td><td><span class="badge-stat ${bc}">${st}</span></td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function kirimNotaKeWA() {
-        if (!dataNotaAktif) return;
-        const teksWA = `*INVOICE SERVICE - ${NAMA_BISNIS}*\n🧾 *No. Invoice:* INV-${dataNotaAktif.no_nota}\n📅 *Tanggal:* ${dataNotaAktif.tanggal}\n👤 *Pelanggan:* ${dataNotaAktif.nama_customer.toUpperCase()}\n🔧 *Perbaikan:* _${dataNotaAktif.perbaikan.toUpperCase()}_\n💰 *TOTAL TAGIHAN:* *Rp ${Number(dataNotaAktif.harga).toLocaleString('id-ID')}*\n Terima kasih!`;
-        window.open(`https://api.whatsapp.com/send?phone=${dataNotaAktif.no_telepon}&text=${encodeURIComponent(teksWA)}`, '_blank');
-    }
-
-    function hubungiOwner() {
-        if (!dataNotaAktif) return;
-        window.open(`https://api.whatsapp.com/send?phone=${NOMOR_WA_CS}&text=${encodeURIComponent("Halo, tanya info INV-" + dataNotaAktif.no_nota)}`, '_blank');
-    }
-</script>
+<!-- HUBUNGKAN KE JS EKSTERNAL -->
+<script src="app.js"></script>
 </body>
 </html>
