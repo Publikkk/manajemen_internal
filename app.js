@@ -1,48 +1,212 @@
 // =========================================================================
 // !!! TINGGAL PASTE URL DEPLOYMENT BARU ANDA DI SINI !!!
 // =========================================================================
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwPglSvZWRsJy_gqM0ghfo5bak9LkhuE6vUcYbkM9u6D19pxk-R0bHx1UgfBSZCPqY7oA/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJ7GWVWSm85pa3ReU-QZVneDzNIjRH94-5rM35H4SJ1YXfzxE0macxHrGHrHs2p0Jj7g/exec";
 const NOMOR_WA_CS = "62895413994246"; 
 const NAMA_BISNIS = "IFRONTROOM SERVICE"; 
 // =========================================================================
+// =========================================================================
+// KONFIGURASI KEAMANAN / LOGIN
+// =========================================================================
+const PIN_AKSES_SISTEM = "005567"; // 🔑 UBAH PIN ANDA DI SINI
 
-const daftarTipeIphone = ["X", "XR", "XS", "XSM", "11", "11P", "11PM", "12 Mini", "12", "12P", "12PM", "13 Mini", "13", "13P", "13PM", "14", "14 Plus", "14P", "14PM", "15", "15 Plus", "15P", "15PM"];
+// Cek status login saat halaman dimuat
+window.addEventListener('DOMContentLoaded', () => {
+    const isLoggedIn = localStorage.getItem('ifrontroom_logged_in');
+    const overlay = document.getElementById('loginOverlay');
+    
+    if (isLoggedIn === 'true') {
+        if (overlay) overlay.style.display = 'none';
+    } else {
+        if (overlay) overlay.style.display = 'flex';
+    }
+});
+
+// Fungsi Eksekusi Login
+window.prosesLogin = function(event) {
+    event.preventDefault();
+    const pinInput = document.getElementById('input_pin_login').value;
+    const msgError = document.getElementById('pesan_error_login');
+
+    if (pinInput === PIN_AKSES_SISTEM) {
+        localStorage.setItem('ifrontroom_logged_in', 'true');
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('input_pin_login').value = '';
+        if (msgError) msgError.style.display = 'none';
+    } else {
+        if (msgError) msgError.style.display = 'block';
+        document.getElementById('input_pin_login').value = '';
+        document.getElementById('input_pin_login').focus();
+    }
+};
+
+// Fungsi Eksekusi Logout
+window.prosesLogout = function() {
+    if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
+        localStorage.removeItem('ifrontroom_logged_in');
+        document.getElementById('loginOverlay').style.display = 'flex';
+    }
+};
+// Daftar tipe iPhone lengkap dari seri 6 sampai 15 Pro Max
+const daftarTipeIphone = [
+    "6", "6 Plus", "6s", "6s Plus",
+    "7", "7 Plus",
+    "8", "8 Plus",
+    "SE 2020", "SE 2022",
+    "X", "XR", "XS", "XSM",
+    "11", "11P", "11PM",
+    "12 Mini", "12", "12P", "12PM",
+    "13 Mini", "13", "13P", "13PM",
+    "14", "14 Plus", "14P", "14PM",
+    "15", "15 Plus", "15P", "15PM"
+];
+
+// Opsi produk lengkap
+const daftarProduk = [
+    "LCD", "BATRE", "KONEKTOR", "BACKGLASS", 
+    "TOMBOL ON/OFF", "TOMBOL VOLUME", "SPEAKER ATAS FULSET", 
+    "SENSOR ONLY", "SPEAKER ONLY", "SPEAKER BAWAH", 
+    "KAMERA BELAKANG", "KAMERA DEPAN"
+];
+
+// Opsi warna lengkap (Termasuk Basic, Pro, Pro Max & Titanium)
+const daftarWarnaBackglass = [
+    "Black / Space Gray", "White / Silver", "Gold", "Rose Gold", 
+    "Red", "Yellow", "Blue", "Green", "Purple", "Pink", 
+    "Midnight", "Starlight", "Pacific Blue", "Sierra Blue", 
+    "Alpine Green", "Deep Purple", "Space Black", 
+    "Natural Titanium", "Blue Titanium", "White Titanium", "Black Titanium"
+];
+
 let dataNotaAktif = null; 
 let masterDataStok = [];
+let jumlahBarisSparepart = 0;
 
 window.onload = function() {
     document.querySelectorAll('.business-name-ui').forEach(el => el.textContent = NAMA_BISNIS);
     const fTipe = document.getElementById("f_tipe");
-    daftarTipeIphone.forEach(t => { fTipe.appendChild(new Option("iPhone " + t, "iPhone " + t)); });
+    if (fTipe) {
+        daftarTipeIphone.forEach(t => { fTipe.appendChild(new Option("iPhone " + t, "iPhone " + t)); });
+    }
 };
 
 window.switchTab = function(element, tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    if(element) element.classList.add('active');
+    
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) targetTab.classList.add('active');
+    if (element) element.classList.add('active');
+    
     document.getElementById('nota-box').style.display = 'none';
     if (tabId === 'stok-tab') muatDataStokDariSheets();
+    if (tabId === 'penjualan-tab') muatLaporanPenjualan();
 };
 
 window.toggleBoxStokNota = function() {
-    document.getElementById('box-stok-nota').style.display = document.getElementById('switch_pakai_stok').checked ? 'block' : 'none';
+    const isChecked = document.getElementById('switch_pakai_stok').checked;
+    const box = document.getElementById('box-stok-nota');
+    box.style.display = isChecked ? 'block' : 'none';
+    
+    if (isChecked && document.getElementById('container-sparepart-list').children.length === 0) {
+        tambahBarisSparepart();
+    }
 };
 
-window.updateOpsiTipeNota = function() {
-    const prod = document.getElementById("nota_produk").value;
-    const sel = document.getElementById("nota_tipe");
-    sel.innerHTML = '<option value="">-- Pilih Tipe --</option>';
-    document.getElementById("nota_area_warna").style.display = (prod === "BACKGLASS") ? "block" : "none";
-    if(prod !== "") { sel.disabled = false; daftarTipeIphone.forEach(t => { sel.appendChild(new Option("iPhone " + t, "iPhone " + t)); }); } else { sel.disabled = true; }
+window.tambahBarisSparepart = function() {
+    jumlahBarisSparepart++;
+    const idRow = `sp_row_${jumlahBarisSparepart}`;
+    const container = document.getElementById('container-sparepart-list');
+    
+    const div = document.createElement('div');
+    div.id = idRow;
+    div.className = 'sparepart-item-row';
+    div.style.cssText = "border: 1px dashed var(--border-color); padding: 10px; margin-bottom: 10px; border-radius: 6px; background: rgba(0,0,0,0.02);";
+
+    let htmlProduk = `<option value="">-- Pilih Produk --</option>`;
+    daftarProduk.forEach(p => htmlProduk += `<option value="${p}">${p}</option>`);
+
+    let htmlTipe = `<option value="">-- Pilih Tipe --</option>`;
+    daftarTipeIphone.forEach(t => htmlTipe += `<option value="iPhone ${t}">iPhone ${t}</option>`);
+
+    let htmlWarna = `<option value="">-- Pilih Warna Backglass --</option>`;
+    daftarWarnaBackglass.forEach(w => htmlWarna += `<option value="${w}">${w}</option>`);
+
+    div.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <strong style="font-size: 12px; color: var(--primary);">Item Sparepart #${container.children.length + 1}</strong>
+            <button type="button" onclick="hapusBarisSparepart('${idRow}')" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; font-size: 14px;">🗑️ Hapus</button>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px;">
+            <select class="sp_produk" onchange="updateRowSparepart('${idRow}')">
+                ${htmlProduk}
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 5px;">
+            <select class="sp_tipe" disabled>
+                ${htmlTipe}
+            </select>
+        </div>
+        <div class="form-group sp_area_warna" style="display: none; margin-bottom: 5px;">
+            <select class="sp_warna">
+                ${htmlWarna}
+            </select>
+        </div>
+    `;
+    container.appendChild(div);
+};
+
+window.hapusBarisSparepart = function(idRow) {
+    const row = document.getElementById(idRow);
+    if (row) row.remove();
+};
+
+window.updateRowSparepart = function(idRow) {
+    const row = document.getElementById(idRow);
+    const prod = row.querySelector('.sp_produk').value;
+    const selTipe = row.querySelector('.sp_tipe');
+    const areaWarna = row.querySelector('.sp_area_warna');
+
+    if (prod !== "") {
+        selTipe.disabled = false;
+    } else {
+        selTipe.disabled = true;
+        selTipe.value = "";
+    }
+
+    if (prod === "BACKGLASS") {
+        areaWarna.style.display = "block";
+    } else {
+        areaWarna.style.display = "none";
+        row.querySelector('.sp_warna').value = "";
+    }
 };
 
 window.updateOpsiTipeGudang = function() {
-    const prod = document.getElementById("stok_produk").value;
+    const prodElem = document.getElementById("stok_produk");
     const sel = document.getElementById("stok_tipe");
+    const areaWarna = document.getElementById("stok_area_warna");
+    
+    if (!sel) return;
+    const prod = prodElem ? prodElem.value : "";
+    
     sel.innerHTML = '<option value="">-- Pilih Tipe --</option>';
-    document.getElementById("stok_area_warna").style.display = (prod === "BACKGLASS") ? "block" : "none";
-    if(prod !== "") { sel.disabled = false; daftarTipeIphone.forEach(t => { sel.appendChild(new Option("iPhone " + t, "iPhone " + t)); }); } else { sel.disabled = true; }
+    
+    if (areaWarna) {
+        let htmlWarna = `<option value="">-- Pilih Warna --</option>`;
+        daftarWarnaBackglass.forEach(w => htmlWarna += `<option value="${w}">${w}</option>`);
+        document.getElementById("stok_warna").innerHTML = htmlWarna;
+        areaWarna.style.display = (prod === "BACKGLASS") ? "block" : "none";
+    }
+    
+    if (prod !== "") { 
+        sel.disabled = false; 
+        daftarTipeIphone.forEach(t => { 
+            sel.appendChild(new Option("iPhone " + t, "iPhone " + t)); 
+        }); 
+    } else { 
+        sel.disabled = true; 
+    }
 };
 
 function pasangDataKeNotaCetak(data) {
@@ -73,6 +237,22 @@ window.simpanNota = async function(event) {
     if (hpInput.startsWith("0")) hpInput = "62" + hpInput.slice(1);
     var pakaiSparepart = document.getElementById("switch_pakai_stok").checked ? "ya" : "tidak";
 
+    let daftarItemDipotong = [];
+    if (pakaiSparepart === "ya") {
+        const rows = document.querySelectorAll('#container-sparepart-list .sparepart-item-row');
+        rows.forEach(row => {
+            const prod = row.querySelector('.sp_produk').value;
+            const tipe = row.querySelector('.sp_tipe').value;
+            const warna = row.querySelector('.sp_warna').value;
+
+            if (prod && tipe) {
+                let tf = tipe;
+                if (prod === "BACKGLASS" && warna) tf = tipe + " - " + warna;
+                daftarItemDipotong.push({ produk: prod, tipe: tf });
+            }
+        });
+    }
+
     const payload = {
         action: "tambah_nota",
         nama_customer: document.getElementById('inp_nama').value,
@@ -80,14 +260,9 @@ window.simpanNota = async function(event) {
         pin_layar: document.getElementById('inp_pin').value,
         perbaikan: document.getElementById('inp_perbaikan').value,
         harga: Number(document.getElementById('inp_harga').value),
-        pakaiSparepart: pakaiSparepart
+        pakaiSparepart: pakaiSparepart,
+        itemsDipotong: daftarItemDipotong
     };
-
-    if (pakaiSparepart === "ya") {
-        payload.sparepart_produk = document.getElementById("nota_produk").value;
-        payload.sparepart_tipe = document.getElementById("nota_tipe").value;
-        payload.sparepart_warna = document.getElementById("nota_warna").value;
-    }
 
     document.getElementById("loadingOverlay").style.display = "flex";
     try {
@@ -99,6 +274,7 @@ window.simpanNota = async function(event) {
         document.getElementById('alert-success-msg').innerHTML = `<strong>Sukses!</strong> Nomor Nota Anda: <strong>${res.no_nota}</strong>`;
         document.getElementById('nota-box').style.display = 'block';
         document.getElementById('form-input').reset();
+        document.getElementById('container-sparepart-list').innerHTML = "";
         document.getElementById('switch_pakai_stok').checked = false;
         window.toggleBoxStokNota();
     } catch(e) { document.getElementById("loadingOverlay").style.display = "none"; alert("Gagal terhubung ke database server."); }
@@ -199,4 +375,118 @@ window.kirimNotaKeWA = function() {
 window.hubungiOwner = function() {
     if (!dataNotaAktif) return;
     window.open(`https://api.whatsapp.com/send?phone=${NOMOR_WA_CS}&text=${encodeURIComponent("Halo, saya ingin menanyakan perihal invoice nomor " + dataNotaAktif.no_nota)}`, '_blank');
+};
+
+// =========================================================================
+// LAPORAN PENJUALAN (OMSET)
+// =========================================================================
+window.muatLaporanPenjualan = function() {
+    document.getElementById("total-penjualan-hari").innerText = "Memuat...";
+    document.getElementById("total-penjualan-bulan").innerText = "Memuat...";
+    
+    const oldScript = document.getElementById("jsonp-laporan-script");
+    if (oldScript) oldScript.remove();
+    
+    const script = document.createElement('script');
+    script.id = "jsonp-laporan-script";
+    script.src = `${WEB_APP_URL}?action=get_laporan&callback=renderLaporanPenjualan`;
+    document.body.appendChild(script);
+};
+
+window.renderLaporanPenjualan = function(data) {
+    const formatRupiah = (angka) => "Rp " + Number(angka).toLocaleString("id-ID");
+
+    document.getElementById("total-penjualan-hari").innerText = formatRupiah(data.totalHariIni || 0);
+    document.getElementById("total-penjualan-bulan").innerText = formatRupiah(data.totalBulanIni || 0);
+    
+    const elCount = document.getElementById("jumlah-nota-bulan");
+    if (elCount && data.jumlahNotaBulanIni !== undefined) {
+        elCount.innerText = `Total: ${data.jumlahNotaBulanIni} Nota Tercatat`;
+    }
+};
+// Variabel global untuk menyimpan objek Chart.js
+let instanceChartPenjualan = null;
+
+window.muatLaporanPenjualan = function() {
+    document.getElementById("total-penjualan-hari").innerText = "Memuat...";
+    document.getElementById("total-penjualan-bulan").innerText = "Memuat...";
+    
+    const oldScript = document.getElementById("jsonp-laporan-script");
+    if (oldScript) oldScript.remove();
+    
+    const script = document.createElement('script');
+    script.id = "jsonp-laporan-script";
+    script.src = `${WEB_APP_URL}?action=get_laporan&callback=renderLaporanPenjualan`;
+    document.body.appendChild(script);
+};
+
+window.renderLaporanPenjualan = function(data) {
+    const formatRupiah = (angka) => "Rp " + Number(angka).toLocaleString("id-ID");
+
+    document.getElementById("total-penjualan-hari").innerText = formatRupiah(data.totalHariIni || 0);
+    document.getElementById("total-penjualan-bulan").innerText = formatRupiah(data.totalBulanIni || 0);
+    
+    const elCount = document.getElementById("jumlah-nota-bulan");
+    if (elCount && data.jumlahNotaBulanIni !== undefined) {
+        elCount.innerText = `Total: ${data.jumlahNotaBulanIni} Nota Tercatat`;
+    }
+
+    // GAMBAR/UPDATE GRAFIK TIMELINE
+    if (data.timelineHarian) {
+        const labels = Object.keys(data.timelineHarian); // Tanggal [01, 02, 03, ...]
+        const values = Object.values(data.timelineHarian); // Omset per tanggal
+
+        const ctx = document.getElementById('chartPenjualanHarian').getContext('2d');
+
+        // Hapus chart lama jika sudah ada (mencegah error saat refresh)
+        if (instanceChartPenjualan) {
+            instanceChartPenjualan.destroy();
+        }
+
+        // Buat Chart Baru
+        instanceChartPenjualan = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Omset Harian (Rp)',
+                    data: values,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3, // Efek lengkungan garis
+                    pointRadius: 4,
+                    pointBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' Omset: ' + formatRupiah(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Tanggal Bulan Ini', font: { size: 11 } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'Rp ' + (value / 1000) + 'k'; // Format ribuan (ex: Rp 200k)
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 };

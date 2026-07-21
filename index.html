@@ -6,8 +6,25 @@
     <title>Sistem Manajemen Toko - iFrontroom Edition</title>
     <!-- HUBUNGKAN KE CSS EKSTERNAL -->
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+<!-- OVERLAY FITUR LOGIN -->
+<div id="loginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e293b; display: flex; justify-content: center; align-items: center; z-index: 9999;">
+    <div style="background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 90%; max-width: 360px; text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+        <h3 class="business-name-ui" style="margin: 0 0 5px 0; color: var(--primary);">IFRONTROOM SERVICE</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">Masukkan PIN Keamanan untuk Masuk System</p>
+        
+        <form onsubmit="prosesLogin(event)">
+            <div style="margin-bottom: 15px;">
+                <input type="password" id="input_pin_login" placeholder="Masukkan PIN" required style="width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; text-align: center; letter-spacing: 4px;">
+            </div>
+            <button type="submit" class="btn-submit" style="width: 100%; padding: 12px; font-weight: bold;">MASUK SYSTEM</button>
+        </form>
+        <p id="pesan_error_login" style="color: red; font-size: 12px; margin-top: 10px; display: none;">⚠️ PIN Salah! Coba lagi.</p>
+    </div>
+</div>
 
 <div id="loadingOverlay"><div class="spinner"></div></div>
 
@@ -20,6 +37,11 @@
         <button class="tab-button active" onclick="switchTab(this, 'input-tab')">Input Nota Baru</button>
         <button class="tab-button" onclick="switchTab(this, 'cari-tab')">Cari Nota</button>
         <button class="tab-button" onclick="switchTab(this, 'stok-tab')">Kelola Stok Gudang</button>
+        <button class="tab-button" onclick="switchTab(this, 'penjualan-tab')">Penjualan</button>
+        <!-- Disisipkan pada header/tab bar -->
+        <button type="button" onclick="prosesLogout()" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: auto;">
+            🚪 Logout
+        </button>
     </div>
 
     <!-- TAB 1: INPUT NOTA -->
@@ -34,23 +56,17 @@
                     <input type="checkbox" id="switch_pakai_stok" onchange="toggleBoxStokNota()">
                     <label for="switch_pakai_stok" style="margin:0; color:var(--primary); cursor:pointer; font-weight:600;">🛠️ Potong Stok Sparepart Toko?</label>
                 </div>
-                
                 <div id="box-stok-nota" class="sub-box-stok">
-                    <div class="form-group">
-                        <label>Pilih Sparepart</label>
-                        <select id="nota_produk" onchange="updateOpsiTipeNota()">
-                            <option value="">-- Pilih Produk --</option>
-                            <option value="LCD">LCD</option><option value="BATRE">BATRE</option><option value="KONEKTOR">KONEKTOR</option><option value="BACKGLASS">BACKGLASS</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label>Tipe iPhone</label><select id="nota_tipe" disabled></select></div>
-                    <div class="form-group" id="nota_area_warna" style="display:none;">
-                        <label>Warna Backglass</label>
-                        <select id="nota_warna">
-                            <option value="">-- Pilih Warna --</option>
-                            <option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Pink">Pink</option><option value="Purple">Purple</option>
-                        </select>
-                    </div>
+                    <label style="font-weight: bold; color: var(--primary); margin-bottom: 10px; display: block;">
+                        🛠️ Sparepart yang Dipakai (Potong Stok)
+                    </label>
+                    
+                    <!-- Container untuk menampung baris sparepart dinamis -->
+                    <div id="container-sparepart-list"></div>
+
+                    <button type="button" class="btn-submit" onclick="tambahBarisSparepart()" style="background: var(--text-muted); font-size: 13px; padding: 8px 12px; margin-top: 5px;">
+                        ➕ Tambah Sparepart Lain
+                    </button>
                 </div>
 
                 <div class="form-group"><label>Detail Perbaikan / Jasa</label><textarea id="inp_perbaikan" placeholder="Tulis keluhan atau pancingan perbaikan..." required></textarea></div>
@@ -68,18 +84,36 @@
         </div>
     </div>
 
-    <!-- TAB 3: KELOLA STOK -->
+    <!-- TAB 3: KELOLA STOK GUDANG -->
     <div id="stok-tab" class="tab-content">
         <div class="stok-layout">
             <div class="stok-form-panel">
                 <div class="form-group">
-                    <label>Pilih Produk</label>
+                    <label>Pilih Sparepart</label>
                     <select id="stok_produk" onchange="updateOpsiTipeGudang()">
                         <option value="">-- Pilih Produk --</option>
-                        <option value="LCD">LCD</option><option value="BATRE">BATRE</option><option value="KONEKTOR">KONEKTOR</option><option value="BACKGLASS">BACKGLASS</option>
+                        <option value="LCD">LCD</option>
+                        <option value="BATRE">BATRE</option>
+                        <option value="KONEKTOR">KONEKTOR</option>
+                        <option value="BACKGLASS">BACKGLASS</option>
+                        <option value="TOMBOL ON/OFF">TOMBOL ON/OFF</option>
+                        <option value="TOMBOL VOLUME">TOMBOL VOLUME</option>
+                        <option value="SPEAKER ATAS FULSET">SPEAKER ATAS FULSET</option>
+                        <option value="SENSOR ONLY">SENSOR ONLY</option>
+                        <option value="SPEAKER ONLY">SPEAKER ONLY</option>
+                        <option value="SPEAKER BAWAH">SPEAKER BAWAH</option>
+                        <option value="KAMERA BELAKANG">KAMERA BELAKANG</option>
+                        <option value="KAMERA DEPAN">KAMERA DEPAN</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Tipe iPhone</label><select id="stok_tipe" disabled></select></div>
+
+                <div class="form-group">
+                    <label>Tipe iPhone</label>
+                    <select id="stok_tipe" disabled>
+                        <option value="">-- Pilih Tipe --</option>
+                    </select>
+                </div>
+
                 <div class="form-group" id="stok_area_warna" style="display:none;">
                     <label>Warna Varian</label>
                     <select id="stok_warna">
@@ -87,6 +121,7 @@
                         <option value="Black">Black</option><option value="White">White</option><option value="Red">Red</option><option value="Yellow">Yellow</option><option value="Blue">Blue</option><option value="Green">Green</option><option value="Pink">Pink</option><option value="Purple">Purple</option>
                     </select>
                 </div>
+
                 <div class="form-group"><label>Jumlah Unit</label><input type="number" id="stok_jumlah" min="1" value="1"></div>
                 <button type="button" class="btn-submit btn-tambah" onclick="eksekusiStokGudang('tambah')">➕ Tambah Stok</button>
                 <button type="button" class="btn-submit btn-kurang" onclick="eksekusiStokGudang('kurang')">➖ Kurangi Stok</button>
@@ -95,7 +130,21 @@
             <div class="stok-table-panel">
                 <div class="search-filter-box">
                     <input type="text" id="cariKeywordStok" placeholder="🔍 Cari..." onkeyup="saringTabelStok()">
-                    <select id="f_produk" onchange="saringTabelStok()"><option value="">Semua Prod</option><option value="LCD">LCD</option><option value="BATRE">BATRE</option><option value="KONEKTOR">KONEKTOR</option><option value="BACKGLASS">BACKGLASS</option></select>
+                    <select id="f_produk" onchange="saringTabelStok()">
+                        <option value="">Semua Prod</option>
+                        <option value="LCD">LCD</option>
+                        <option value="BATRE">BATRE</option>
+                        <option value="KONEKTOR">KONEKTOR</option>
+                        <option value="BACKGLASS">BACKGLASS</option>
+                        <option value="TOMBOL ON/OFF">TOMBOL ON/OFF</option>
+                        <option value="TOMBOL VOLUME">TOMBOL VOLUME</option>
+                        <option value="SPEAKER ATAS FULSET">SPEAKER ATAS FULSET</option>
+                        <option value="SENSOR ONLY">SENSOR ONLY</option>
+                        <option value="SPEAKER ONLY">SPEAKER ONLY</option>
+                        <option value="SPEAKER BAWAH">SPEAKER BAWAH</option>
+                        <option value="KAMERA BELAKANG">KAMERA BELAKANG</option>
+                        <option value="KAMERA DEPAN">KAMERA DEPAN</option>
+                    </select>
                     <select id="f_tipe" onchange="saringTabelStok()"><option value="">Semua Tipe</option></select>
                     <select id="f_status" onchange="saringTabelStok()"><option value="">Semua Stat</option><option value="aman">✅ Aman</option><option value="menipis">⚠️ Nipi</option><option value="kritis">🚨 Kritis</option></select>
                 </div>
@@ -107,6 +156,40 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: PENJUALAN -->
+  <!-- TAB 4: PENJUALAN -->
+    <div id="penjualan-tab" class="tab-content">
+        <div class="form-centered-container" style="max-width: 800px;">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 20px;">📊 Ringkasan & Tren Penjualan</h3>
+            
+            <!-- CARD PENJUALAN -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
+                    <h5 style="margin: 0; color: #2e7d32; text-transform: uppercase;">Penjualan Hari Ini</h5>
+                    <h2 id="total-penjualan-hari" style="margin: 8px 0 0 0; color: #1b5e20;">Rp 0</h2>
+                </div>
+
+                <div style="background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; text-align: center;">
+                    <h5 style="margin: 0; color: #1565c0; text-transform: uppercase;">Penjualan Bulan Ini</h5>
+                    <h2 id="total-penjualan-bulan" style="margin: 8px 0 0 0; color: #0d47a1;">Rp 0</h2>
+                    <small id="jumlah-nota-bulan" style="color: #555; display: block; margin-top: 5px; font-weight: 500;"></small>
+                </div>
+            </div>
+
+            <!-- CONTAINER GRAFIK TIMELINE HARIAN -->
+            <div style="margin-top: 25px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <h5 style="margin: 0 0 15px 0; color: var(--primary); text-align: center;">📈 Tren Omset Harian Bulan Ini</h5>
+                <div style="position: relative; width: 100%; height: 260px;">
+                    <canvas id="chartPenjualanHarian"></canvas>
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="muatLaporanPenjualan()" style="margin-top: 20px; background: var(--text-muted);">
+                🔄 Refresh Omset & Grafik
+            </button>
         </div>
     </div>
 
@@ -136,7 +219,7 @@
                     Jl. Rajawali 2 No 22 RT 03/RW 04, Kelurahan Margasari,<br>
                     Kecamatan Tigaraksa, Kabupaten Tangerang,<br>
                     Banten 15720<br>
-                    HP: 6285210987654
+                    HP: 62895413994246
                 </div>
             </div>
         </div>
@@ -201,12 +284,12 @@
         </ul>
         <div class="p-thank-you">
             Terima kasih atas kepercayaan Anda.<br>
-            <div style="font-weight: 600; margin-top: 5px;">Metode Pembayaran: Cash / Transfer BCA 123456789 a.n NAMA ANDA</div>
+            <div style="font-weight: 600; margin-top: 5px;">Metode Pembayaran: Cash / Transfer BCA 7641775316 a.n MARDATILLA RAMADHANI</div>
         </div>
     </div>
 </div>
 
 <!-- HUBUNGKAN KE JS EKSTERNAL -->
-<script src="app.js"></script>
+<script src="app.js?v=2.1"></script>
 </body>
 </html>
