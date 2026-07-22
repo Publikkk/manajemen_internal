@@ -160,18 +160,20 @@
     </div>
 
     <!-- TAB 4: PENJUALAN -->
-  <!-- TAB 4: PENJUALAN -->
     <div id="penjualan-tab" class="tab-content">
         <div class="form-centered-container" style="max-width: 800px;">
             <h3 style="text-align: center; color: var(--primary); margin-bottom: 20px;">📊 Ringkasan & Tren Penjualan</h3>
             
             <!-- CARD PENJUALAN -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
-                <div style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center;">
-                    <h5 style="margin: 0; color: #2e7d32; text-transform: uppercase;">Penjualan Hari Ini</h5>
+                <!-- Card Harian Bisa Diklik (Hover Effect & Cursor Pointer) -->
+                <div onclick="bukaModalHistoriHarian()" style="background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                    <h5 style="margin: 0; color: #2e7d32; text-transform: uppercase;">Penjualan Hari Ini 🔍</h5>
                     <h2 id="total-penjualan-hari" style="margin: 8px 0 0 0; color: #1b5e20;">Rp 0</h2>
+                    <small style="color: #2e7d32; font-size: 11px; text-decoration: underline; display: block; margin-top: 4px;">Klik untuk lihat rincian nota</small>
                 </div>
 
+                <!-- Card Bulanan -->
                 <div style="background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; text-align: center;">
                     <h5 style="margin: 0; color: #1565c0; text-transform: uppercase;">Penjualan Bulan Ini</h5>
                     <h2 id="total-penjualan-bulan" style="margin: 8px 0 0 0; color: #0d47a1;">Rp 0</h2>
@@ -179,17 +181,65 @@
                 </div>
             </div>
 
-            <!-- CONTAINER GRAFIK TIMELINE HARIAN -->
-            <div style="margin-top: 25px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="margin-top: 25px; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
                 <h5 style="margin: 0 0 15px 0; color: var(--primary); text-align: center;">📈 Tren Omset Harian Bulan Ini</h5>
-                <div style="position: relative; width: 100%; height: 260px;">
-                    <canvas id="chartPenjualanHarian"></canvas>
+                
+                <!-- Wrapper Luar (Scroll Horizontal) -->
+                <div class="chart-scroll-wrapper">
+                    <!-- Container Dalam (Lebar Asli Grafik) -->
+                    <div class="chart-container-inner">
+                        <canvas id="chartPenjualanHarian"></canvas>
+                    </div>
                 </div>
             </div>
+    
 
             <button type="button" class="btn-submit" onclick="muatLaporanPenjualan()" style="margin-top: 20px; background: var(--text-muted);">
                 🔄 Refresh Omset & Grafik
             </button>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP HISTORI PENJUALAN HARIAN -->
+    <div id="modalHistoriPenjualan" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; padding: 15px;">
+        <div style="background:#fff; width:100%; max-width:700px; max-height:85vh; border-radius:10px; padding:20px; display:flex; flex-direction:column; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #ddd; padding-bottom:10px; margin-bottom:15px;">
+                <h4 style="margin:0; color:var(--primary);">📋 Histori Nota Penjualan</h4>
+                <button type="button" onclick="tutupModalHistoriHarian()" style="background:none; border:none; font-size:20px; cursor:pointer; font-weight:bold; color:#888;">✕</button>
+            </div>
+
+            <!-- FILTER TANGGAL HISTORI -->
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px; background:#f8fafc; padding:10px; border-radius:6px; flex-wrap: wrap;">
+                <label style="font-size:13px; font-weight:bold; color:#475569; margin:0;">Pilih Tanggal:</label>
+                <input type="date" id="filter_tgl_histori" style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; font-size:13px;" onchange="cariHistoriBerdasarkanTanggal()">
+                <button type="button" onclick="setTanggalHistoriHariIni()" style="padding:6px 12px; background:var(--primary); color:#fff; border:none; border-radius:4px; font-size:12px; cursor:pointer;">Hari Ini</button>
+            </div>
+
+            <!-- RINGKASAN OMSET HARIAN MODAL -->
+            <div style="display:flex; justify-content:space-between; background:#f1f5f9; padding:10px 15px; border-radius:6px; margin-bottom:10px; font-size:13px; font-weight:bold;">
+                <span>Tanggal: <span id="lbl_histori_tgl" style="color:var(--primary);">-</span></span>
+                <span>Total Omset: <span id="lbl_histori_omset" style="color:#16a34a;">Rp 0</span> (<span id="lbl_histori_qty">0</span> Nota)</span>
+            </div>
+
+            <!-- TABEL HISTORI NOTA -->
+            <div style="overflow-y:auto; flex:1;">
+                <table class="table-stok" style="width:100%; font-size:12px;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:8px; text-align:left;">No. Nota</th>
+                            <th style="padding:8px; text-align:left;">Pelanggan</th>
+                            <th style="padding:8px; text-align:left;">Detail Perbaikan</th>
+                            <th style="padding:8px; text-align:right;">Harga</th>
+                            <th style="padding:8px; text-align:center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyTabelHistoriHarian">
+                        <tr><td colspan="5" style="text-align:center; padding:15px;">Pilih tanggal untuk melihat data.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 

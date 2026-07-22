@@ -100,3 +100,58 @@ button.btn-submit:hover { background-color: var(--primary-hover); }
     .app-container { display: none; }
     #nota-print-area { display: block; width: 100%; min-height: 297mm; }
 }
+
+/* =========================================================================
+   FIX & OPTIMASI KHUSUS SAFARI (iOS / iPHONE)
+   ========================================================================= */
+
+/* 1. Mencegah Auto-Zoom di Safari iPhone saat tap Input / Select */
+input[type="text"],
+input[type="number"],
+input[type="password"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+    font-size: 16px !important; /* Wajib minimal 16px agar Safari tidak auto-zoom */
+}
+
+/* 2. Scroll mulus & alami di iOS WebKit */
+.table-responsive-custom,
+div[style*="overflow-x: auto"] {
+    -webkit-overflow-scrolling: touch; /* Mengaktifkan inertia scrolling native iOS */
+}
+
+/* 3. Menghilangkan styling bawaan iOS pada tombol & input */
+input, select, textarea, button {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 6px;
+}
+
+/* 4. Fix Modal Height untuk Toolbar Dinamis Safari iPhone */
+#modalHistoriPenjualan > div {
+    max-height: 85vh;
+    max-height: 85dvh; /* Dynamic Viewport Height khusus Safari iOS */
+}
+
+/* 5. Fix Chart Container Canvas di Safari */
+div[style*="overflow-x: auto"] > div {
+    display: block;
+    width: 100%;
+}
+
+/* Wrapper luar untuk scroll horizontal */
+.chart-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Biar scroll halus di Safari iPhone */
+    padding-bottom: 10px;
+}
+
+/* Container dalam untuk maksa grafik punya lebar yang lega */
+.chart-container-inner {
+    position: relative;
+    min-width: 750px; /* Lebar minimum grafik (31 hari) */
+    height: 280px;    /* Tinggi grafik */
+}

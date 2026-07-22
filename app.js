@@ -1,10 +1,10 @@
 // =========================================================================
-// !!! TINGGAL PASTE URL DEPLOYMENT BARU ANDA DI SINI !!!
+// KONFIGURASI UTAMA
 // =========================================================================
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxJ7GWVWSm85pa3ReU-QZVneDzNIjRH94-5rM35H4SJ1YXfzxE0macxHrGHrHs2p0Jj7g/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwtcauPtumOrSK39QYv_ZPfjeidUHtCLtXVccuJb9xTSmJKvjiDlYlRK9op3w1Dz3cLGA/exec";
 const NOMOR_WA_CS = "62895413994246"; 
 const NAMA_BISNIS = "IFRONTROOM SERVICE"; 
-// =========================================================================
+
 // =========================================================================
 // KONFIGURASI KEAMANAN / LOGIN
 // =========================================================================
@@ -47,7 +47,10 @@ window.prosesLogout = function() {
         document.getElementById('loginOverlay').style.display = 'flex';
     }
 };
-// Daftar tipe iPhone lengkap dari seri 6 sampai 15 Pro Max
+
+// =========================================================================
+// DATA PRESET SIFAT SISTEM
+// =========================================================================
 const daftarTipeIphone = [
     "6", "6 Plus", "6s", "6s Plus",
     "7", "7 Plus",
@@ -61,7 +64,6 @@ const daftarTipeIphone = [
     "15", "15 Plus", "15P", "15PM"
 ];
 
-// Opsi produk lengkap
 const daftarProduk = [
     "LCD", "BATRE", "KONEKTOR", "BACKGLASS", 
     "TOMBOL ON/OFF", "TOMBOL VOLUME", "SPEAKER ATAS FULSET", 
@@ -69,7 +71,6 @@ const daftarProduk = [
     "KAMERA BELAKANG", "KAMERA DEPAN"
 ];
 
-// Opsi warna lengkap (Termasuk Basic, Pro, Pro Max & Titanium)
 const daftarWarnaBackglass = [
     "Black / Space Gray", "White / Silver", "Gold", "Rose Gold", 
     "Red", "Yellow", "Blue", "Green", "Purple", "Pink", 
@@ -81,6 +82,7 @@ const daftarWarnaBackglass = [
 let dataNotaAktif = null; 
 let masterDataStok = [];
 let jumlahBarisSparepart = 0;
+let instanceChartPenjualan = null; // Chart.js instance
 
 window.onload = function() {
     document.querySelectorAll('.business-name-ui').forEach(el => el.textContent = NAMA_BISNIS);
@@ -90,6 +92,9 @@ window.onload = function() {
     }
 };
 
+// =========================================================================
+// NAVIGASI TAB & FORM
+// =========================================================================
 window.switchTab = function(element, tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
@@ -209,6 +214,9 @@ window.updateOpsiTipeGudang = function() {
     }
 };
 
+// =========================================================================
+// PEMBUATAN & PENCARIAN NOTA
+// =========================================================================
 function pasangDataKeNotaCetak(data) {
     document.querySelectorAll('.p-business-name-target').forEach(el => el.textContent = NAMA_BISNIS);
     document.getElementById('p_lbl_nota').textContent = data.no_nota;
@@ -296,6 +304,9 @@ window.cariNota = async function() {
     } catch(e) { document.getElementById("loadingOverlay").style.display = "none"; alert("Eror pencarian data."); }
 };
 
+// =========================================================================
+// MANAJEMEN STOK GUDANG
+// =========================================================================
 window.muatDataStokDariSheets = function() {
     document.getElementById("bodyTabelStok").innerHTML = `<tr><td colspan="4" style="text-align:center;">Menghubungkan database awan...</td></tr>`;
     const oldScript = document.getElementById("jsonp-stok-script");
@@ -357,6 +368,9 @@ window.saringTabelStok = function() {
     });
 };
 
+// =========================================================================
+// INTEGRASI WHATSAPP
+// =========================================================================
 window.kirimNotaKeWA = function() {
     if (!dataNotaAktif) return;
     const teksWA = `*INVOICE SERVICE - ${NAMA_BISNIS}*\n` +
@@ -378,35 +392,8 @@ window.hubungiOwner = function() {
 };
 
 // =========================================================================
-// LAPORAN PENJUALAN (OMSET)
+// LAPORAN PENJUALAN & GRAFIK (OMSET)
 // =========================================================================
-window.muatLaporanPenjualan = function() {
-    document.getElementById("total-penjualan-hari").innerText = "Memuat...";
-    document.getElementById("total-penjualan-bulan").innerText = "Memuat...";
-    
-    const oldScript = document.getElementById("jsonp-laporan-script");
-    if (oldScript) oldScript.remove();
-    
-    const script = document.createElement('script');
-    script.id = "jsonp-laporan-script";
-    script.src = `${WEB_APP_URL}?action=get_laporan&callback=renderLaporanPenjualan`;
-    document.body.appendChild(script);
-};
-
-window.renderLaporanPenjualan = function(data) {
-    const formatRupiah = (angka) => "Rp " + Number(angka).toLocaleString("id-ID");
-
-    document.getElementById("total-penjualan-hari").innerText = formatRupiah(data.totalHariIni || 0);
-    document.getElementById("total-penjualan-bulan").innerText = formatRupiah(data.totalBulanIni || 0);
-    
-    const elCount = document.getElementById("jumlah-nota-bulan");
-    if (elCount && data.jumlahNotaBulanIni !== undefined) {
-        elCount.innerText = `Total: ${data.jumlahNotaBulanIni} Nota Tercatat`;
-    }
-};
-// Variabel global untuk menyimpan objek Chart.js
-let instanceChartPenjualan = null;
-
 window.muatLaporanPenjualan = function() {
     document.getElementById("total-penjualan-hari").innerText = "Memuat...";
     document.getElementById("total-penjualan-bulan").innerText = "Memuat...";
@@ -433,17 +420,15 @@ window.renderLaporanPenjualan = function(data) {
 
     // GAMBAR/UPDATE GRAFIK TIMELINE
     if (data.timelineHarian) {
-        const labels = Object.keys(data.timelineHarian); // Tanggal [01, 02, 03, ...]
-        const values = Object.values(data.timelineHarian); // Omset per tanggal
+        const labels = Object.keys(data.timelineHarian);
+        const values = Object.values(data.timelineHarian);
 
         const ctx = document.getElementById('chartPenjualanHarian').getContext('2d');
 
-        // Hapus chart lama jika sudah ada (mencegah error saat refresh)
         if (instanceChartPenjualan) {
             instanceChartPenjualan.destroy();
         }
 
-        // Buat Chart Baru
         instanceChartPenjualan = new Chart(ctx, {
             type: 'line',
             data: {
@@ -455,8 +440,9 @@ window.renderLaporanPenjualan = function(data) {
                     backgroundColor: 'rgba(37, 99, 235, 0.1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.3, // Efek lengkungan garis
+                    tension: 0.3,
                     pointRadius: 4,
+                    pointHoverRadius: 6,
                     pointBackgroundColor: '#2563eb'
                 }]
             },
@@ -475,13 +461,20 @@ window.renderLaporanPenjualan = function(data) {
                 },
                 scales: {
                     x: {
-                        title: { display: true, text: 'Tanggal Bulan Ini', font: { size: 11 } }
+                        title: { display: true, text: 'Tanggal Bulan Ini', font: { size: 11, weight: 'bold' } },
+                        ticks: {
+                            autoSkip: false, // Menampilkan seluruh tanggal 1 - 31 tanpa dieliminasi
+                            font: { size: 10 }
+                        },
+                        grid: { display: false }
                     },
                     y: {
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
-                                return 'Rp ' + (value / 1000) + 'k'; // Format ribuan (ex: Rp 200k)
+                                if (value >= 1000000) return 'Rp ' + (value / 1000000) + 'Jt';
+                                if (value >= 1000) return 'Rp ' + (value / 1000) + 'k';
+                                return 'Rp ' + value;
                             }
                         }
                     }
@@ -489,4 +482,94 @@ window.renderLaporanPenjualan = function(data) {
             }
         });
     }
+};
+
+// =========================================================================
+// LOGIKA MODAL & HISTORI PENJUALAN HARIAN
+// =========================================================================
+function formatToInputDate(dateObj) {
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+window.bukaModalHistoriHarian = function() {
+    document.getElementById('modalHistoriPenjualan').style.display = 'flex';
+    setTanggalHistoriHariIni();
+};
+
+window.tutupModalHistoriHarian = function() {
+    document.getElementById('modalHistoriPenjualan').style.display = 'none';
+};
+
+window.setTanggalHistoriHariIni = function() {
+    const today = new Date();
+    document.getElementById('filter_tgl_histori').value = formatToInputDate(today);
+    cariHistoriBerdasarkanTanggal();
+};
+
+window.cariHistoriBerdasarkanTanggal = function() {
+    const valInput = document.getElementById('filter_tgl_histori').value; // YYYY-MM-DD
+    if (!valInput) return;
+
+    // Konversi YYYY-MM-DD menjadi DD/MM/YYYY
+    const parts = valInput.split('-');
+    const tglFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`; 
+
+    document.getElementById("bodyTabelHistoriHarian").innerHTML = `<tr><td colspan="5" style="text-align:center; padding:15px;">Mengambil data nota...</td></tr>`;
+    document.getElementById("lbl_histori_tgl").innerText = tglFormatted;
+
+    const oldScript = document.getElementById("jsonp-histori-script");
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.id = "jsonp-histori-script";
+    script.src = `${WEB_APP_URL}?action=get_histori_harian&tanggal=${encodeURIComponent(tglFormatted)}&callback=renderHistoriPenjualanHarian`;
+    document.body.appendChild(script);
+};
+
+window.renderHistoriPenjualanHarian = function(res) {
+    const formatRupiah = (angka) => "Rp " + Number(angka).toLocaleString("id-ID");
+    const tbody = document.getElementById("bodyTabelHistoriHarian");
+    tbody.innerHTML = "";
+
+    if (res.status !== "success" || !res.data || res.data.length === 0) {
+        document.getElementById("lbl_histori_omset").innerText = "Rp 0";
+        document.getElementById("lbl_histori_qty").innerText = "0";
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#888; padding:15px;">Tidak ada transaksi nota pada tanggal ini.</td></tr>`;
+        return;
+    }
+
+    document.getElementById("lbl_histori_omset").innerText = formatRupiah(res.totalOmset);
+    document.getElementById("lbl_histori_qty").innerText = res.totalNota;
+
+    res.data.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--border-color, #e2e8f0)";
+        tr.innerHTML = `
+            <td style="padding:8px; font-weight:bold; color:var(--primary);">${item.no_nota}</td>
+            <td style="padding:8px;">${item.nama_customer}<br><small style="color:#666;">${item.no_telepon}</small></td>
+            <td style="padding:8px;">${item.perbaikan}</td>
+            <td style="padding:8px; text-align:right; font-weight:bold; color:var(--success, #16a34a);">${formatRupiah(item.harga)}</td>
+            <td style="padding:8px; text-align:center;">
+                <button type="button" onclick="pilihDanTampilkanNota('${item.no_nota}')" style="background:var(--primary); color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer;">
+                    📄 Lihat
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+};
+
+window.pilihDanTampilkanNota = function(noNota) {
+    tutupModalHistoriHarian();
+    document.getElementById('search_nota').value = noNota;
+    
+    // Cari tombol tab 'cari-tab' di DOM
+    const btnCari = document.querySelector(".tab-button[onclick*='cari-tab']");
+    window.switchTab(btnCari, 'cari-tab');
+    
+    // Panggil fungsi cariNota bawaan
+    window.cariNota();
 };
